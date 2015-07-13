@@ -1,7 +1,7 @@
 # pySMARTnotify
 Notify when smart values for drives are out of spec. Uses `smartctl --scan` to detect drives
 
-Checks if any of the specified SMART ID's *RAW_VALUE* is > 0 and checks if the *WHEN_FAILED* field is anything other than "-".
+Checks if any of the specified SMART ID's *RAW_VALUE* is > 0 and checks if the *WHEN_FAILED* field is not "-".
 
 Add drives you want to skip to the ignore list ('dev/something').
 
