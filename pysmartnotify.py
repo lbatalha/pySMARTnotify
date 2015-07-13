@@ -9,12 +9,12 @@ flagged = collections.Counter()
 check_ids = [1, 5, 7, 10, 11, 196, 197, 198]
 
 #File to store list of flagged drives
-flagged_path = "/tmp/flagged_drives.list"
+flagged_path = '/tmp/flagged_drives.list'
 
 #List of ignored drives
 ignored = ['/dev/fd0']
 
-#Number of recurring errors before no more notifications are sent
+#Number of recurring errors for at least one drive before no more notifications are sent
 error_threshold = 3
 
 #List of recipient email addresses
