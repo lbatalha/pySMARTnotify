@@ -8,8 +8,7 @@ Add drives you want to skip to the ignore list ('dev/something').
 ###Caveats:
   - Uses SSL for SMTP.
   - SMTP auth password is stored in **plain text**, so make sure you set proper file access permissions (0700 ?).
-  - `smartctl` requires root priviliges, make sure the user does not have to input password to run the script\*.
-  - if running as root, remove `sudo` call.
+  - `smartctl` requires root priviliges, it will try to invoke sudo if not running as root, make sure the user does not have to input a password to run smartctl\*
   - make sure user can write the *"flagged drives"* file to the specified path.
 
 ###Dependencies:
@@ -17,6 +16,6 @@ Add drives you want to skip to the ignore list ('dev/something').
   - [`python2`](https://www.python.org)
 
 
-\*You can add a line to `/etc/sudoers` such as:
+\*You can add a line to `/etc/sudoers`:
 `USERNAME ALL = NOPASSWD: /usr/sbin/smartctl`
 
