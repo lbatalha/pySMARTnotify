@@ -25,6 +25,11 @@ PASSWORD = 'pass'
 recipients = ['user@host.tld']
 sender = 'someone@somewhere'
 
+if os.geteuid() == 0:
+	command = []
+else:
+	command = ['sudo']
+
 
 def flagged_storage(op):
 	"""Handle writing and reading list file of flagged drives."""
@@ -73,14 +78,18 @@ def mail(content):
 	
 def main():
 	data = collections.OrderedDict()
-	drives = subprocess.check_output(["sudo", "smartctl", "--scan"]).split('\n')[:-1]
+	smartscan = list(command)
+	smartscan.extend(['smartctl', '--scan'])
+	drives = subprocess.check_output(smartscan).split('\n')[:-1]
 	if flagged_storage('r') == False:
 		print("File %s does not exist yet, creating." % flagged_path)
 	notify = False
 	for i in drives:
 		i = i.split()
 		if i[0] not in ignored:
-			smartdata = subprocess.check_output(["sudo", "smartctl", "-A", i[0]])
+			cmd = list(command)
+			cmd.extend(['smartctl', '-A', i[0]])
+			smartdata = subprocess.check_output(cmd)
 			smartdata = smartdata.split('\n')
 
 			lines = []
