@@ -19,48 +19,44 @@ error_threshold = 3
 
 #List of recipient email addresses
 smtp_server = 'smtp.gmail.com'
-USERNAME = ''
-PASSWORD = ''
+USERNAME = 'user'
+PASSWORD = 'pass'
 
-recipients = ['user@email.com']
-sender = 'something@something.com'
+recipients = ['user@host.tld']
+sender = 'someone@somewhere'
 
 
 def flagged_storage(op):
 	"""Handle writing and reading list file of flagged drives."""
 	if op == 'w':
-		f = open(flagged_path, op)
-		for k, v in flagged.items():
-			f.write("%s:%d\n" % (k, v))
-		f.close()
-		return(0)
+		with open(flagged_path, op) as f:
+			for k, v in flagged.items():
+				f.write("%s:%d\n" % (k, v))
 	elif op == 'r' and os.path.isfile(flagged_path):
-		f = open(flagged_path, op)
-		data = f.read().split('\n')[:-1]
-		for i in data:
-			try:
-				k, v = i.split(':')
-				flagged[k] = int(v)
-			except ValueError:
-				print("No data to parse")
-		f.close()
-		return(0)
+		with open(flagged_path, op) as f:
+			data = f.read().split('\n')[:-1]
+			for i in data:
+				try:
+					k, v = i.split(':')
+					flagged[k] = int(v)
+				except ValueError:
+					print("No data to parse")
 	else:
-		return(1)
+		return False
 
 def error_parser(drive, line):
-	"""Checks each line of SMART attributes for problems and flags them."""
+	"""Checks each line of SMART attributes for problems and flags the drive."""
 	problem = 0
 	if any(int(line['ID#']) == x for x in check_ids):
 		try:
 			if int(line['RAW_VALUE']) > 0:
-				problem = 1
+				problem = True
 		except ValueError:
 			print("RAW_VALUE not INT, ignoring.")
 
 		if line['WHEN_FAILED'] != '-':
-			problem = 1
-		if problem == 1:
+			problem = True
+		if problem == True:
 			flagged[drive] += 1
 
 def mail(content):
@@ -74,17 +70,16 @@ def mail(content):
 	s.login(USERNAME, PASSWORD)
 	s.sendmail(sender, recipients, msg.as_string())
 	s.close()
-	return(0)
-
+	
 def main():
 	data = collections.OrderedDict()
 	drives = subprocess.check_output(["sudo", "smartctl", "--scan"]).split('\n')[:-1]
-	if flagged_storage('r') != 0:
+	if flagged_storage('r') == False:
 		print("File %s does not exist yet, creating." % flagged_path)
-	notify = 0
+	notify = False
 	for i in drives:
 		i = i.split()
-		if ignored.count(i[0]) == 0:
+		if i[0] not in ignored:
 			smartdata = subprocess.check_output(["sudo", "smartctl", "-A", i[0]])
 			smartdata = smartdata.split('\n')
 
@@ -99,13 +94,13 @@ def main():
 			print("%s is in ignore list, skipping." % i[0])
 
 		if 0 < flagged[i[0]] <= error_threshold:
-			notify = 1
-	if notify == 1:
-		if mail(flagged) != 0:
-			print("Failed to send notification email")
+			notify = True
+	if notify == True:
+		mail(flagged)
+
 	print(flagged)
-	if flagged_storage('w') != 0:
-		print("Failed writing %s" % flagged_path)
+	flagged_storage('w')
+	
 
 main()
 
